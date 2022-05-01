@@ -1,8 +1,11 @@
 import { readFile } from "fs/promises";
 
+// custom Modules
+import cleanFileInput from "./helpers/cleanFileInput.js";
+
 console.log(process.argv);
 
-let jackProgram = await readFile("./ArrayTest/Main.jack", "utf8", (err, data) => {
+const plainJackProgram = await readFile("./ArrayTest/Main.jack", "utf8", (err, data) => {
   if (err) {
     console.error(err);
     return;
@@ -10,4 +13,5 @@ let jackProgram = await readFile("./ArrayTest/Main.jack", "utf8", (err, data) =>
   return data;
 });
 
-console.log(jackProgram);
+const cleanedJackProgram = cleanFileInput(plainJackProgram);
+console.log(cleanedJackProgram);
