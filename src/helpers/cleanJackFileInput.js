@@ -1,11 +1,9 @@
-export default function readFileAndClean(input) {
+export default function cleanJackFileInput(input) {
   const cleanedInput = cleanFileInputs(input);
   const splitLines = splitLinesIntoTerms(cleanedInput);
   const finalLines = seperateSymbols(splitLines);
   return finalLines;
 }
-
-const SYMBOLS = ["{", "}", "(", ")", "[", "]", ".", ",", ";", "+", "-", "*", "/", "&", "|", "<", ">", "=", "~"];
 
 function cleanFileInputs(fileArray) {
   // Replace all comments
@@ -51,7 +49,7 @@ function seperateSymbols(input) {
   }
   function seperate(line) {
     if (line.length === 1) return line; //Return if already single characters/symbols
-    if (line[0] === '"') return line.slice(1, -1); //Return if String
+    if (line[0] === '"') return line; //Return if String
     let newline = line.split(/([{}()[\].,;+\-*/&|<>=~])/gm); // Splits the line at special symbols and includes the symbols
     return newline.filter((e) => e); // remove empty elements
   }
