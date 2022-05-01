@@ -4,5 +4,12 @@ import { Tokenizer } from "./src/Tokenizer.js";
   console.log(process.argv[2]);
   const tokenizer = new Tokenizer();
   const filepath = "./ArrayTest/Main.jack";
-  tokenizer.init(filepath);
+  await tokenizer.init(filepath);
+  const tokenArray = [];
+  while (tokenizer.hasMoreToken()) {
+    const currentToken = tokenizer.advance();
+    const tokenType = tokenizer.tokenType();
+    tokenArray.push(`<${tokenType}> ${currentToken} </${tokenType}>`);
+  }
+  console.log(tokenArray);
 })();
