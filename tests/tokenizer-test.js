@@ -4,8 +4,8 @@ import { Tokenizer } from "../src/Tokenizer.js";
 
 describe("Tokenizer", async function () {
   let outputCompareArray, outputArray;
-  const compareFilepath = "./ArrayTest/MainT.xml";
-  const readInFilepath = "./ArrayTest/Main.jack";
+  const compareFilepath = "./Square/MainT.xml";
+  const readInFilepath = "./Square/Main.jack";
 
   before(async function () {
     // Read-In Compare-OutputFile
