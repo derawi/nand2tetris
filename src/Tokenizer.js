@@ -2,6 +2,12 @@ import { readFile } from "fs/promises";
 import cleanJackFileInput from "./helpers/cleanJackFileInput.js";
 
 const SYMBOLS = ["{", "}", "(", ")", "[", "]", ".", ",", ";", "+", "-", "*", "/", "&", "|", "<", ">", "=", "~"];
+const SPECIALSYMBOLS = new Map([
+  ["<", "&lt;"],
+  [">", "&gt;"],
+  ["&", "&amp;"],
+  ['"', "&quot;"],
+]);
 const KEYWORDS = [
   "class",
   "constructor",
@@ -46,6 +52,17 @@ export class Tokenizer {
     this.currentPosition = -1;
   }
 
+  tokenize() {
+    const tokenArray = ["<tokens>"];
+    while (this.hasMoreToken()) {
+      const currentToken = this.advance();
+      const tokenType = this.tokenType();
+      tokenArray.push(`<${tokenType}> ${currentToken} </${tokenType}>`);
+    }
+    tokenArray.push("</tokens>");
+    return tokenArray;
+  }
+
   getPosAndLen() {
     return [this.currentPosition, this.maxPosition];
   }
@@ -55,7 +72,12 @@ export class Tokenizer {
   }
   advance() {
     this.currentPosition++;
+    // If special symbol is found
+    if (SPECIALSYMBOLS.has(this.rawTokens[this.currentPosition]))
+      return SPECIALSYMBOLS.get(this.rawTokens[this.currentPosition]);
+    // If String is found
     if (this.rawTokens[this.currentPosition][0] !== '"') return this.rawTokens[this.currentPosition];
+    // All other Cases
     return this.rawTokens[this.currentPosition].slice(1, -1);
   }
   tokenType() {

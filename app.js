@@ -6,12 +6,7 @@ import { writeFile } from "fs/promises";
   const tokenizer = new Tokenizer();
   const filepath = "./ArrayTest/Main.jack";
   await tokenizer.init(filepath);
-  const tokenArray = ["<tokens>"];
-  while (tokenizer.hasMoreToken()) {
-    const currentToken = tokenizer.advance();
-    const tokenType = tokenizer.tokenType();
-    tokenArray.push(`<${tokenType}> ${currentToken} </${tokenType}>`);
-  }
-  tokenArray.push("</tokens>");
+  const tokenArray = await tokenizer.tokenize();
+
   await writeFile(`${filepath.slice(0, -5)}T2.xml`, tokenArray.join("\n"));
 })();
