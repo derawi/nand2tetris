@@ -1,5 +1,8 @@
 import { Tokenizer } from "./Tokenizer.js";
 
+const STATEMENTSARRAY = ["let", "if", "while", "do", "return"];
+const TERMTERMINATORS = [")", "]", ";", "/", "*", "+", "-", "&lt;", "&gt;"];
+
 export class CompilationEngine {
   constructor(_tokenizer) {
     this.tokenizer = _tokenizer;
@@ -9,10 +12,10 @@ export class CompilationEngine {
   }
   //   HELPERS =====================================
   incIndent() {
-    this.indent = this.indent + " ";
+    this.indent = this.indent + "  ";
   }
   decIndent() {
-    this.indent = this.indent.slice(0, -1);
+    this.indent = this.indent.slice(0, -2);
   }
   add(term) {
     this.output += this.indent + term + "\n";
@@ -89,26 +92,142 @@ export class CompilationEngine {
     }
     this.addDec("</parameterList>");
   }
-
+  //   ==== SUBROUTINEBODY ====
   compileSubroutineBody() {
     this.addInc("<subroutineBody>");
     this.nextToken();
     this.addTokenKeyword(); //{
-    // Compile Var Dec
+    // Compile all vars
     while (this.nextToken() === "var") {
       this.compileVarDec();
     }
+    // Statemens
+    this.compileStatements();
 
-    // Todo consume }
+    this.addTokenKeyword(); // === "}"
     this.addDec("</subroutineBody>");
   }
-
+  //   ==== VARDEC ====
   compileVarDec() {
     this.addInc("<varDec>");
     do {
       this.addTokenKeyword();
     } while (this.nextToken() !== ";");
-    this.addTokenKeyword();
+    this.addTokenKeyword(); // === ";"
     this.addDec("</varDec>");
   }
+  //   ==== STATEMENTS ====
+  compileStatements() {
+    this.addInc("<statements>");
+
+    while (STATEMENTSARRAY.includes(this.currentToken)) {
+      switch (this.currentToken) {
+        case "let":
+          this.compileLet();
+          break;
+        case "if":
+          this.compileIf();
+          break;
+        case "while":
+          this.compileWhile();
+          break;
+        case "do":
+          this.compileDo();
+          break;
+        case "return":
+          this.compileReturn();
+          break;
+      }
+      this.nextToken();
+      // this.addTokenKeyword();
+    }
+
+    this.addDec("</statements>");
+  }
+  compileLet() {
+    this.addInc("<letStatement>");
+
+    this.addTokenKeyword();
+    // Todo: Implement handle expression
+    while (this.nextToken() !== ";") {
+      this.addTokenKeyword();
+      if (this.currentToken === "=" || this.currentToken === "[") {
+        this.CompileExpression();
+        if (this.currentToken === ";") break;
+      }
+    }
+    this.addTokenKeyword(this.currentToken); //;
+    this.addDec("</letStatement>");
+  }
+  compileIf() {
+    this.addInc("<ifStatement>");
+
+    this.addTokenKeyword();
+    // Todo: Implement handle expression
+    while (this.nextToken() !== ";") {
+      this.addTokenKeyword();
+    }
+    this.addTokenKeyword(); //;
+    this.addDec("</ifStatement>");
+  }
+  compileWhile() {
+    this.addInc("<whileStatement>");
+
+    this.addTokenKeyword();
+    // Todo: Implement handle expression and other statements
+    while (this.nextToken() !== "}") {
+      this.addTokenKeyword();
+    }
+    this.addTokenKeyword(); //;
+    this.addDec("</whileStatement>");
+  }
+  compileDo() {
+    this.addInc("<doStatement>");
+
+    this.addTokenKeyword();
+    // Todo: Implement handle expression
+    while (this.nextToken() !== ";") {
+      this.addTokenKeyword();
+    }
+    this.addTokenKeyword(); //;
+    this.addDec("</doStatement>");
+  }
+
+  compileReturn() {
+    this.addInc("<returnStatement>");
+
+    this.addTokenKeyword();
+    // Todo: Implement handle expression
+    while (this.nextToken() !== ";") {
+      this.addTokenKeyword();
+    }
+    this.addTokenKeyword(); //;
+    this.addDec("</returnStatement>");
+  }
+
+  CompileExpression() {
+    this.addInc("<expression>");
+
+    // Todo: Implement handle expression
+    while (this.nextToken() !== ";") {
+      this.CompileTerm();
+    }
+    this.addDec("</expression>");
+  }
+
+  CompileTerm() {
+    this.addInc("<term>");
+    this.add("<----------- Pointer-------------->");
+
+    // Todo: Implement lookahead to distinguish between
+    // variable, array entry and, subroutine call
+    this.addTokenKeyword();
+    while (!TERMTERMINATORS.includes(this.nextToken())) {
+      this.addTokenKeyword();
+    }
+    if (this.currentToken !== ";") this.addTokenKeyword();
+    this.addDec("</term>");
+  }
+
+  CompileExpressionList() {}
 }
