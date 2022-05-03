@@ -8,9 +8,7 @@ import { writeFile } from "fs/promises";
   const tokenizer = new Tokenizer();
   const filepath = "./ArrayTest/Main.jack";
   await tokenizer.init(filepath);
-  // const tokenArray = await tokenizer.tokenize();
-  // await writeFile(`${filepath.slice(0, -5)}T2.xml`, tokenArray.join("\n"));
-  // Implement Compilation Engine
+  // Compilation Engine
   const compil = new CompilationEngine(tokenizer);
   compil.CompileClass();
   console.log(compil.getResult());

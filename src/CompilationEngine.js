@@ -28,8 +28,11 @@ export class CompilationEngine {
     this.decIndent();
     this.add(term);
   }
+  consumeTokenKeyword() {
+    return `<${this.tokenizer.tokenType()}> ${this.currentToken} </${this.tokenizer.tokenType()}>`;
+  }
   addTokenKeyword() {
-    this.add(`<${this.tokenizer.tokenType()}> ${this.currentToken} </${this.tokenizer.tokenType()}>`);
+    this.add(this.consumeTokenKeyword());
   }
   nextToken() {
     this.currentToken = this.tokenizer.advance();
@@ -52,7 +55,6 @@ export class CompilationEngine {
     if (["constructor", "function", "method"].includes(this.nextToken())) {
       this.CompileSubroutineDec();
     }
-    console.log(this.currentToken);
     // ClassVarDec
 
     // ---- End Class declaration
@@ -173,7 +175,10 @@ export class CompilationEngine {
   compileWhile() {
     this.addInc("<whileStatement>");
 
-    this.addTokenKeyword();
+    this.addTokenKeyword(); //while
+    this.nextToken();
+    this.addTokenKeyword(); // (
+    this.CompileExpression();
     // Todo: Implement handle expression and other statements
     while (this.nextToken() !== "}") {
       this.addTokenKeyword();
@@ -209,25 +214,63 @@ export class CompilationEngine {
     this.addInc("<expression>");
 
     // Todo: Implement handle expression
-    while (this.nextToken() !== ";") {
-      this.CompileTerm();
-    }
+    this.nextToken();
+    this.CompileTerm();
+    // console.log(![";",")"].includes(this.currentToken)){
+
+    // }
+    // if(this.currentToken !== ")")
+    // while (![";", ")"].includes(this.currentToken)) {
+    // if (this.tokenizer.tokenType() === "symbol") {
+    //   this.addTokenKeyword;
+    // } else {
+
+    // }
+    // }
     this.addDec("</expression>");
   }
 
   CompileTerm() {
     this.addInc("<term>");
-    this.add("<----------- Pointer-------------->");
+    // this.add("<----------- Pointer-------------->");
 
     // Todo: Implement lookahead to distinguish between
     // variable, array entry and, subroutine call
-    this.addTokenKeyword();
-    while (!TERMTERMINATORS.includes(this.nextToken())) {
+
+    // if (this.tokenizer.tokenType() === "identifier") this.add("IDID----");
+
+    if (this.tokenizer.tokenType() === "identifier") {
+      while (!TERMTERMINATORS.includes(this.currentToken)) {
+        let savedTokenKeyword = this.consumeTokenKeyword(); //T0
+        this.nextToken();
+        if (this.currentToken === ".") {
+          this.add(savedTokenKeyword); //T0
+          this.addTokenKeyword();
+          this.nextToken(); // .
+        } else if (this.currentToken === "(") {
+          this.add(savedTokenKeyword); //T0
+          this.addTokenKeyword(); // (
+          this.CompileExpressionList();
+        } else {
+          this.add(savedTokenKeyword);
+        }
+      }
+    } else {
       this.addTokenKeyword();
+      this.nextToken();
     }
-    if (this.currentToken !== ";") this.addTokenKeyword();
     this.addDec("</term>");
   }
 
-  CompileExpressionList() {}
+  CompileExpressionList() {
+    this.addInc("<expressionList>");
+
+    // Todo: Implement handle multiple Expressions
+    // while (this.currentToken !== ")") {
+    this.CompileExpression();
+    // }
+    this.addDec("</expressionList>");
+
+    this.addTokenKeyword(); // )
+  }
 }
