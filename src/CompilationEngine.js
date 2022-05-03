@@ -106,7 +106,7 @@ export class CompilationEngine {
     }
     // Statemens
     this.compileStatements();
-
+    this.nextToken();
     this.addTokenKeyword(); // === "}"
     this.addDec("</subroutineBody>");
   }
@@ -142,7 +142,6 @@ export class CompilationEngine {
           break;
       }
       //   this.nextToken();
-      console.log("Statemetns2:", this.currentToken);
       // this.addTokenKeyword();
     }
     this.addDec("</statements>");
@@ -155,6 +154,7 @@ export class CompilationEngine {
     while (this.nextToken() !== ";") {
       this.addTokenKeyword();
       if (this.currentToken === "=" || this.currentToken === "[") {
+        this.nextToken();
         this.CompileExpression();
         if (this.currentToken === "]") this.addTokenKeyword();
         if (this.currentToken === ";") break;
@@ -182,6 +182,7 @@ export class CompilationEngine {
     // Handle Expression
     this.nextToken();
     this.addTokenKeyword(); // (
+    this.nextToken();
     this.CompileExpression();
     this.addTokenKeyword(); // )
     // Handle Statements
@@ -232,33 +233,18 @@ export class CompilationEngine {
     this.addInc("<expression>");
 
     // Todo: Implement handle expression
-    this.nextToken();
     this.CompileTerm();
     if (OPERATOR.includes(this.currentToken)) {
       this.addTokenKeyword(); //e.g. > < && ||
       this.nextToken();
       this.CompileTerm();
     }
-
-    // if(this.currentToken !== ")")
-    // while (![";", ")"].includes(this.currentToken)) {
-    // if (this.tokenizer.tokenType() === "symbol") {
-    //   this.addTokenKeyword;
-    // } else {
-
-    // }
-    // }
     this.addDec("</expression>");
   }
 
   CompileTerm() {
     this.addInc("<term>");
     // this.add("<----------- Pointer-------------->");
-
-    // Todo: Implement lookahead to distinguish between
-    // variable, array entry and, subroutine call
-
-    // if (this.tokenizer.tokenType() === "identifier") this.add("IDID----");
 
     if (this.tokenizer.tokenType() === "identifier") {
       while (!TERMTERMINATORS.includes(this.currentToken)) {
@@ -275,6 +261,7 @@ export class CompilationEngine {
         } else if (this.currentToken === "[") {
           this.add(savedTokenKeyword); //T0
           this.addTokenKeyword(); // [
+          this.nextToken();
           this.CompileExpression();
           this.addTokenKeyword();
           this.nextToken();
@@ -283,6 +270,7 @@ export class CompilationEngine {
         }
       }
     } else {
+      console.log("Term", this.currentToken);
       this.addTokenKeyword();
       this.nextToken();
     }
@@ -292,7 +280,12 @@ export class CompilationEngine {
   CompileExpressionList() {
     //   Opening "(" are consumed before
     this.addInc("<expressionList>");
-    this.CompileExpression();
+    // check for empty expression
+    console.log("expressionlist", this.currentToken);
+    this.nextToken();
+    if (!(this.currentToken === ")")) {
+      this.CompileExpression();
+    }
     this.addDec("</expressionList>");
 
     this.addTokenKeyword(); // )
