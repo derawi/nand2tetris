@@ -203,6 +203,7 @@ export class CompilationEngine {
       this.addTokenKeyword();
       this.nextToken();
       this.addTokenKeyword(); // {
+      this.nextToken();
       this.compileStatements();
       this.nextToken();
       this.addTokenKeyword(); // }
@@ -273,7 +274,7 @@ export class CompilationEngine {
 
     // Todo: Implement handle expression
     this.CompileTerm();
-    if (OPERATOR.includes(this.currentToken)) {
+    while (OPERATOR.includes(this.currentToken)) {
       this.addTokenKeyword(); //e.g. > < && ||
       this.nextToken();
       this.CompileTerm();
@@ -312,7 +313,9 @@ export class CompilationEngine {
       this.addTokenKeyword();
       this.nextToken();
     }
-
+    if (this.currentToken === "-") {
+      this.CompileExpression();
+    }
     this.addDec("</term>");
   }
 
