@@ -1,7 +1,7 @@
 import { Tokenizer } from "./Tokenizer.js";
 
 const STATEMENTSARRAY = ["let", "if", "while", "do", "return"];
-const TERMTERMINATORS = [",", ")", "]", ";", "/", "*", "+", "-", "&lt;", "&gt;"];
+const TERMTERMINATORS = [",", ")", "]", ";", "/", "*", "+", "-", "&lt;", "&gt;", "|", "&", "~"];
 const OPERATOR = ["/", "*", "+", "-", "&lt;", "&gt;", "&", "|", "="];
 
 export class CompilationEngine {
@@ -165,7 +165,7 @@ export class CompilationEngine {
   compileLet() {
     this.addInc("<letStatement>");
 
-    this.addTokenKeyword(); //Varname?
+    this.addTokenKeyword(); //Varname
     // Todo: Implement handle expression
     while (this.nextToken() !== ";") {
       this.addTokenKeyword();
@@ -205,9 +205,8 @@ export class CompilationEngine {
       this.addTokenKeyword(); // {
       this.nextToken();
       this.compileStatements();
-      this.nextToken();
       this.addTokenKeyword(); // }
-      this.nextToken();
+      this.nextToken(); //next statement
     }
 
     // Todo: Implement handle expression
@@ -284,9 +283,12 @@ export class CompilationEngine {
 
   CompileTerm() {
     this.addInc("<term>");
-    // this.add("<----------- Pointer-------------->");
-
-    if (this.tokenizer.tokenType() === "identifier") {
+    // Unary operators
+    if (this.currentToken === "-" || this.currentToken === "~") {
+      this.addTokenKeyword(); // - OR ~
+      this.nextToken();
+      this.CompileTerm();
+    } else if (this.tokenizer.tokenType() === "identifier") {
       while (!TERMTERMINATORS.includes(this.currentToken)) {
         let savedTokenKeyword = this.getTokenKeyword(); //T0
         this.nextToken();
@@ -309,12 +311,15 @@ export class CompilationEngine {
           this.add(savedTokenKeyword);
         }
       }
+    } else if (this.currentToken === "(") {
+      this.addTokenKeyword(); // (
+      this.nextToken();
+      this.CompileExpression();
+      this.addTokenKeyword();
+      this.nextToken();
     } else {
       this.addTokenKeyword();
       this.nextToken();
-    }
-    if (this.currentToken === "-") {
-      this.CompileExpression();
     }
     this.addDec("</term>");
   }
