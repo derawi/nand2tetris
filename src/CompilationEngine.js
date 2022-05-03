@@ -1,8 +1,9 @@
-import { Tokenizer } from "./Tokenizer.js";
-
 const STATEMENTSARRAY = ["let", "if", "while", "do", "return"];
 const TERMTERMINATORS = [",", ")", "]", ";", "/", "*", "+", "-", "=", "&lt;", "&gt;", " &amp;", "|", "&", "~"];
 const OPERATOR = ["/", "*", "+", "-", "&lt;", "&gt;", "&amp;", "|", "="];
+
+// This files compiles accoring to the given API
+// Check specs cheat-sheet for more info
 
 export class CompilationEngine {
   constructor(_tokenizer) {
@@ -35,6 +36,13 @@ export class CompilationEngine {
   addTokenKeyword() {
     this.add(this.getTokenKeyword());
   }
+  addAndNext(n = 1) {
+    //Adds a Token+Keywords and advances n-times
+    for (let i = 0; i < n; i++) {
+      this.addTokenKeyword();
+      this.nextToken();
+    }
+  }
   nextToken() {
     this.currentToken = this.tokenizer.advance();
     return this.currentToken;
@@ -47,12 +55,7 @@ export class CompilationEngine {
     this.nextToken();
     if (this.currentToken !== "class") return false;
     this.addInc("<class>");
-    this.addTokenKeyword(); // class
-    this.nextToken();
-    this.addTokenKeyword(); // class Name "Main"
-    this.nextToken();
-    this.addTokenKeyword(); // {
-    this.nextToken();
+    this.addAndNext(3); // class - class Name "Main" - {
     // ClassVarDec
     while (["static", "field"].includes(this.currentToken)) {
       this.CompileClassVarDec();
@@ -74,19 +77,13 @@ export class CompilationEngine {
       this.addTokenKeyword();
     } while (this.nextToken() !== ";");
 
-    this.addTokenKeyword(); // ;
-    this.nextToken();
+    this.addAndNext(); // ;
     this.addDec("</classVarDec>");
   }
   //    ==== SUBROUTINEDEC ====
   CompileSubroutineDec() {
     this.addInc("<subroutineDec>");
-    this.addTokenKeyword(); //function
-    this.nextToken();
-    this.addTokenKeyword(); //void
-    this.nextToken();
-    this.addTokenKeyword(); //main
-    this.nextToken();
+    this.addAndNext(3); //function - void - main
 
     // Parameterlist
     this.addTokenKeyword(); //   begins here (
@@ -157,8 +154,6 @@ export class CompilationEngine {
           this.compileReturn();
           break;
       }
-      //   this.nextToken();
-      // this.addTokenKeyword();
     }
     this.addDec("</statements>");
   }
@@ -182,71 +177,48 @@ export class CompilationEngine {
   }
   compileIf() {
     this.addInc("<ifStatement>");
-    this.addTokenKeyword(); // if
+    this.addAndNext(2); // if - (
 
-    this.nextToken();
-    this.addTokenKeyword(); // (
-
-    this.nextToken();
     this.CompileExpression();
-    this.addTokenKeyword(); // )
 
-    this.nextToken();
-    this.addTokenKeyword(); // {
-    this.nextToken(); //ADDED!!!
+    this.addAndNext(2); // ) - {
+
     this.compileStatements();
 
-    // this.nextToken();
     this.addTokenKeyword(); // }
 
     if (this.nextToken() === "else") {
-      this.addTokenKeyword();
-      this.nextToken();
-      this.addTokenKeyword(); // {
-      this.nextToken();
-      this.compileStatements();
-      this.addTokenKeyword(); // }
-      this.nextToken(); //next statement
-    }
+      this.addAndNext(2); // else - {
 
-    // Todo: Implement handle expression
-    // this.nextToken();
+      this.compileStatements();
+      this.addAndNext(); // } + load next statement
+    }
 
     this.addDec("</ifStatement>");
   }
   compileWhile() {
     this.addInc("<whileStatement>");
 
-    this.addTokenKeyword(); //while
-    // Handle Expression
-    this.nextToken();
-    this.addTokenKeyword(); // (
-    this.nextToken();
+    this.addAndNext(2); //while - (
     this.CompileExpression();
-    this.addTokenKeyword(); // )
+    this.addAndNext(2); // ) - {
+
     // Handle Statements
-    this.nextToken();
-    this.addTokenKeyword(); // {
-    this.nextToken();
     while (this.currentToken !== "}") {
       this.compileStatements();
     }
-    this.addTokenKeyword(); // }
+    this.addAndNext(); // }
     this.addDec("</whileStatement>");
-    this.nextToken();
   }
   compileDo() {
     this.addInc("<doStatement>");
 
-    this.addTokenKeyword(); //do
-    this.nextToken();
+    this.addAndNext(); //do
+
     this.addTokenKeyword(); //subroutineName OR classname/varname
 
     if (this.nextToken() === ".") {
-      this.addTokenKeyword(); // .
-      this.nextToken();
-      this.addTokenKeyword(); // subroutinename
-      this.nextToken();
+      this.addAndNext(2); // . - subroutinename
     }
     this.addTokenKeyword(); // (
     this.CompileExpressionList();
@@ -274,8 +246,7 @@ export class CompilationEngine {
     // Todo: Implement handle expression
     this.CompileTerm();
     while (OPERATOR.includes(this.currentToken)) {
-      this.addTokenKeyword(); //e.g. > < && ||
-      this.nextToken();
+      this.addAndNext(); //e.g. > < && ||
       this.CompileTerm();
     }
     this.addDec("</expression>");
@@ -285,8 +256,8 @@ export class CompilationEngine {
     this.addInc("<term>");
     // Unary operators
     if (this.currentToken === "-" || this.currentToken === "~") {
-      this.addTokenKeyword(); // - OR ~
-      this.nextToken();
+      this.addAndNext(); // - OR ~
+
       this.CompileTerm();
     } else if (this.tokenizer.tokenType() === "identifier") {
       while (!TERMTERMINATORS.includes(this.currentToken)) {
@@ -294,32 +265,26 @@ export class CompilationEngine {
         this.nextToken();
         if (this.currentToken === ".") {
           this.add(savedTokenKeyword); //T0
-          this.addTokenKeyword();
-          this.nextToken(); // .
+          this.addAndNext();
         } else if (this.currentToken === "(") {
           this.add(savedTokenKeyword); //T0
           this.addTokenKeyword(); // (
           this.CompileExpressionList();
         } else if (this.currentToken === "[") {
           this.add(savedTokenKeyword); //T0
-          this.addTokenKeyword(); // [
-          this.nextToken();
+          this.addAndNext(); // [
           this.CompileExpression();
-          this.addTokenKeyword();
-          this.nextToken();
+          this.addAndNext();
         } else {
           this.add(savedTokenKeyword);
         }
       }
     } else if (this.currentToken === "(") {
-      this.addTokenKeyword(); // (
-      this.nextToken();
+      this.addAndNext(); // (
       this.CompileExpression();
-      this.addTokenKeyword();
-      this.nextToken();
+      this.addAndNext();
     } else {
-      this.addTokenKeyword();
-      this.nextToken();
+      this.addAndNext();
     }
     this.addDec("</term>");
   }
@@ -332,8 +297,7 @@ export class CompilationEngine {
     if (!(this.currentToken === ")")) {
       do {
         if (this.currentToken === ",") {
-          this.addTokenKeyword();
-          this.nextToken();
+          this.addAndNext();
         }
         this.CompileExpression();
       } while (this.currentToken === ",");

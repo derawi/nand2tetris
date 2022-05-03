@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "mocha ./tests/tokenizer-test.js"
+    "test": "mocha ./tests/CompilationEngine-test.js"
   },
   "author": "",
   "license": "ISC",
