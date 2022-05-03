@@ -1,7 +1,7 @@
 import { Tokenizer } from "./Tokenizer.js";
 
 const STATEMENTSARRAY = ["let", "if", "while", "do", "return"];
-const TERMTERMINATORS = [")", "]", ";", "/", "*", "+", "-", "&lt;", "&gt;"];
+const TERMTERMINATORS = [",", ")", "]", ";", "/", "*", "+", "-", "&lt;", "&gt;"];
 const OPERATOR = ["/", "*", "+", "-", "&lt;", "&gt;", "&", "|", "="];
 
 export class CompilationEngine {
@@ -52,16 +52,31 @@ export class CompilationEngine {
     this.addTokenKeyword(); // class Name "Main"
     this.nextToken();
     this.addTokenKeyword(); // {
-    // SubroutineDec
-    if (["constructor", "function", "method"].includes(this.nextToken())) {
-      this.CompileSubroutineDec();
-    }
+    this.nextToken();
     // ClassVarDec
+    while (["static", "field"].includes(this.currentToken)) {
+      this.CompileClassVarDec();
+    }
+    // SubroutineDec
+    while (["constructor", "function", "method"].includes(this.currentToken)) {
+      this.CompileSubroutineDec();
+      this.nextToken();
+    }
 
     // ---- End Class declaration
     // this.nextToken();
     this.addTokenKeyword();
     this.addDec("</class>");
+  }
+  CompileClassVarDec() {
+    this.addInc("<classVarDec>");
+    do {
+      this.addTokenKeyword();
+    } while (this.nextToken() !== ";");
+
+    this.addTokenKeyword(); // ;
+    this.nextToken();
+    this.addDec("</classVarDec>");
   }
   //    ==== SUBROUTINEDEC ====
   CompileSubroutineDec() {
@@ -83,14 +98,15 @@ export class CompilationEngine {
 
     // ---- End Subroutine Dec
     this.addDec("</subroutineDec>");
-    // Todo consume }
   }
   //   ==== PARAMETERLIST ====
   compileParameterList() {
-    this.CompileClass("parameterlist");
+    // this.CompileClass("parameterlist");
     this.addInc("<parameterList>");
     // Implement Parameterlist
-    if (this.currentToken !== ")") {
+    while (this.nextToken() !== ")") {
+      this.addTokenKeyword();
+
       // Process parameter List, else empty list
     }
     this.addDec("</parameterList>");
@@ -166,13 +182,36 @@ export class CompilationEngine {
   }
   compileIf() {
     this.addInc("<ifStatement>");
+    this.addTokenKeyword(); // if
 
-    this.addTokenKeyword();
-    // Todo: Implement handle expression
-    while (this.nextToken() !== ";") {
+    this.nextToken();
+    this.addTokenKeyword(); // (
+
+    this.nextToken();
+    this.CompileExpression();
+    this.addTokenKeyword(); // )
+
+    this.nextToken();
+    this.addTokenKeyword(); // {
+    this.nextToken(); //ADDED!!!
+    this.compileStatements();
+
+    // this.nextToken();
+    this.addTokenKeyword(); // }
+
+    if (this.nextToken() === "else") {
       this.addTokenKeyword();
+      this.nextToken();
+      this.addTokenKeyword(); // {
+      this.compileStatements();
+      this.nextToken();
+      this.addTokenKeyword(); // }
+      this.nextToken();
     }
-    this.addTokenKeyword(); //;
+
+    // Todo: Implement handle expression
+    // this.nextToken();
+
     this.addDec("</ifStatement>");
   }
   compileWhile() {
@@ -207,8 +246,8 @@ export class CompilationEngine {
       this.addTokenKeyword(); // .
       this.nextToken();
       this.addTokenKeyword(); // subroutinename
+      this.nextToken();
     }
-    if (this.nextToken() !== "(") console.log("ERROR");
     this.addTokenKeyword(); // (
     this.CompileExpressionList();
     this.nextToken();
@@ -220,10 +259,10 @@ export class CompilationEngine {
   compileReturn() {
     this.addInc("<returnStatement>");
 
-    this.addTokenKeyword();
+    this.addTokenKeyword(); // return
     // Todo: Implement handle expression
-    while (this.nextToken() !== ";") {
-      this.addTokenKeyword();
+    if (this.nextToken() !== ";") {
+      this.CompileExpression();
     }
     this.addTokenKeyword(); //;
     this.addDec("</returnStatement>");
@@ -270,10 +309,10 @@ export class CompilationEngine {
         }
       }
     } else {
-      console.log("Term", this.currentToken);
       this.addTokenKeyword();
       this.nextToken();
     }
+
     this.addDec("</term>");
   }
 
@@ -281,10 +320,15 @@ export class CompilationEngine {
     //   Opening "(" are consumed before
     this.addInc("<expressionList>");
     // check for empty expression
-    console.log("expressionlist", this.currentToken);
     this.nextToken();
     if (!(this.currentToken === ")")) {
-      this.CompileExpression();
+      do {
+        if (this.currentToken === ",") {
+          this.addTokenKeyword();
+          this.nextToken();
+        }
+        this.CompileExpression();
+      } while (this.currentToken === ",");
     }
     this.addDec("</expressionList>");
 

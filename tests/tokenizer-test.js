@@ -50,8 +50,13 @@ describe("Tokenizer", async function () {
 */
 describe("CompilationEngine", async function () {
   let outputCompareData, compiledData;
-  const compareFilepath = "./ArrayTest/Main.xml";
-  const readInFilepath = "./ArrayTest/Main.jack";
+  // const compareFilepath = "./ArrayTest/Main.xml";
+  // const readInFilepath = "./ArrayTest/Main.jack";
+
+  // const compareFilepath = "./ExpressionLessSquare/Square.xml";
+  // const readInFilepath = "./ExpressionLessSquare/Square.jack";
+  const compareFilepath = "./ExpressionLessSquare/Main.xml";
+  const readInFilepath = "./ExpressionLessSquare/Main.jack";
 
   before(async function () {
     // Read-In Compare-OutputFile
