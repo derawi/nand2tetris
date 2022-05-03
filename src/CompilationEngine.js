@@ -198,13 +198,22 @@ export class CompilationEngine {
   compileDo() {
     this.addInc("<doStatement>");
 
-    this.addTokenKeyword();
-    // Todo: Implement handle expression
-    while (this.nextToken() !== ";") {
-      this.addTokenKeyword();
+    this.addTokenKeyword(); //do
+    this.nextToken();
+    this.addTokenKeyword(); //subroutineName OR classname/varname
+
+    if (this.nextToken() === ".") {
+      this.addTokenKeyword(); // .
+      this.nextToken();
+      this.addTokenKeyword(); // subroutinename
     }
-    this.addTokenKeyword(); //;
+    if (this.nextToken() !== "(") console.log("ERROR");
+    this.addTokenKeyword(); // (
+    this.CompileExpressionList();
+    this.nextToken();
+    this.addTokenKeyword(); // ;
     this.addDec("</doStatement>");
+    this.nextToken();
   }
 
   compileReturn() {
@@ -281,12 +290,9 @@ export class CompilationEngine {
   }
 
   CompileExpressionList() {
+    //   Opening "(" are consumed before
     this.addInc("<expressionList>");
-
-    // Todo: Implement handle multiple Expressions
-    // while (this.currentToken !== ")") {
     this.CompileExpression();
-    // }
     this.addDec("</expressionList>");
 
     this.addTokenKeyword(); // )
