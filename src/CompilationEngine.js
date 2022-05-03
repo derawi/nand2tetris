@@ -1,8 +1,8 @@
 import { Tokenizer } from "./Tokenizer.js";
 
 const STATEMENTSARRAY = ["let", "if", "while", "do", "return"];
-const TERMTERMINATORS = [",", ")", "]", ";", "/", "*", "+", "-", "&lt;", "&gt;", "|", "&", "~"];
-const OPERATOR = ["/", "*", "+", "-", "&lt;", "&gt;", "&", "|", "="];
+const TERMTERMINATORS = [",", ")", "]", ";", "/", "*", "+", "-", "=", "&lt;", "&gt;", " &amp;", "|", "&", "~"];
+const OPERATOR = ["/", "*", "+", "-", "&lt;", "&gt;", "&amp;", "|", "="];
 
 export class CompilationEngine {
   constructor(_tokenizer) {

@@ -54,6 +54,8 @@ const allDataPairs = [
   ["./ExpressionLessSquare/Square.xml", "./ExpressionLessSquare/Square.jack"],
   ["./ExpressionLessSquare/SquareGame.xml", "./ExpressionLessSquare/SquareGame.jack"],
   ["./Square/Main.xml", "./Square/Main.jack"],
+  ["./Square/Square.xml", "./Square/Square.jack"],
+  ["./Square/SquareGame.xml", "./Square/SquareGame.jack"],
 ];
 
 for (let data of allDataPairs) {
