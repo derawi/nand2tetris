@@ -2,6 +2,7 @@ import { Tokenizer } from "./Tokenizer.js";
 
 const STATEMENTSARRAY = ["let", "if", "while", "do", "return"];
 const TERMTERMINATORS = [")", "]", ";", "/", "*", "+", "-", "&lt;", "&gt;"];
+const OPERATOR = ["/", "*", "+", "-", "&lt;", "&gt;", "&", "|", "="];
 
 export class CompilationEngine {
   constructor(_tokenizer) {
@@ -28,11 +29,11 @@ export class CompilationEngine {
     this.decIndent();
     this.add(term);
   }
-  consumeTokenKeyword() {
+  getTokenKeyword() {
     return `<${this.tokenizer.tokenType()}> ${this.currentToken} </${this.tokenizer.tokenType()}>`;
   }
   addTokenKeyword() {
-    this.add(this.consumeTokenKeyword());
+    this.add(this.getTokenKeyword());
   }
   nextToken() {
     this.currentToken = this.tokenizer.advance();
@@ -58,7 +59,7 @@ export class CompilationEngine {
     // ClassVarDec
 
     // ---- End Class declaration
-    this.nextToken();
+    // this.nextToken();
     this.addTokenKeyword();
     this.addDec("</class>");
   }
@@ -140,26 +141,28 @@ export class CompilationEngine {
           this.compileReturn();
           break;
       }
-      this.nextToken();
+      //   this.nextToken();
+      console.log("Statemetns2:", this.currentToken);
       // this.addTokenKeyword();
     }
-
     this.addDec("</statements>");
   }
   compileLet() {
     this.addInc("<letStatement>");
 
-    this.addTokenKeyword();
+    this.addTokenKeyword(); //Varname?
     // Todo: Implement handle expression
     while (this.nextToken() !== ";") {
       this.addTokenKeyword();
       if (this.currentToken === "=" || this.currentToken === "[") {
         this.CompileExpression();
+        if (this.currentToken === "]") this.addTokenKeyword();
         if (this.currentToken === ";") break;
       }
     }
     this.addTokenKeyword(this.currentToken); //;
     this.addDec("</letStatement>");
+    this.nextToken();
   }
   compileIf() {
     this.addInc("<ifStatement>");
@@ -176,15 +179,21 @@ export class CompilationEngine {
     this.addInc("<whileStatement>");
 
     this.addTokenKeyword(); //while
+    // Handle Expression
     this.nextToken();
     this.addTokenKeyword(); // (
     this.CompileExpression();
-    // Todo: Implement handle expression and other statements
-    while (this.nextToken() !== "}") {
-      this.addTokenKeyword();
+    this.addTokenKeyword(); // )
+    // Handle Statements
+    this.nextToken();
+    this.addTokenKeyword(); // {
+    this.nextToken();
+    while (this.currentToken !== "}") {
+      this.compileStatements();
     }
-    this.addTokenKeyword(); //;
+    this.addTokenKeyword(); // }
     this.addDec("</whileStatement>");
+    this.nextToken();
   }
   compileDo() {
     this.addInc("<doStatement>");
@@ -216,9 +225,12 @@ export class CompilationEngine {
     // Todo: Implement handle expression
     this.nextToken();
     this.CompileTerm();
-    // console.log(![";",")"].includes(this.currentToken)){
+    if (OPERATOR.includes(this.currentToken)) {
+      this.addTokenKeyword(); //e.g. > < && ||
+      this.nextToken();
+      this.CompileTerm();
+    }
 
-    // }
     // if(this.currentToken !== ")")
     // while (![";", ")"].includes(this.currentToken)) {
     // if (this.tokenizer.tokenType() === "symbol") {
@@ -241,7 +253,7 @@ export class CompilationEngine {
 
     if (this.tokenizer.tokenType() === "identifier") {
       while (!TERMTERMINATORS.includes(this.currentToken)) {
-        let savedTokenKeyword = this.consumeTokenKeyword(); //T0
+        let savedTokenKeyword = this.getTokenKeyword(); //T0
         this.nextToken();
         if (this.currentToken === ".") {
           this.add(savedTokenKeyword); //T0
@@ -251,6 +263,12 @@ export class CompilationEngine {
           this.add(savedTokenKeyword); //T0
           this.addTokenKeyword(); // (
           this.CompileExpressionList();
+        } else if (this.currentToken === "[") {
+          this.add(savedTokenKeyword); //T0
+          this.addTokenKeyword(); // [
+          this.CompileExpression();
+          this.addTokenKeyword();
+          this.nextToken();
         } else {
           this.add(savedTokenKeyword);
         }

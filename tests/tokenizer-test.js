@@ -99,8 +99,8 @@ describe("CompilationEngine", async function () {
       console.log("First FailedLine:", firstFailedLine);
       let from = firstFailedLine - 5 >= 0 ? firstFailedLine - 5 : 0;
       let to =
-        firstFailedLine + 8 <= Math.min(outputCompareData.length, compiledData.length)
-          ? firstFailedLine + 8
+        firstFailedLine + 12 <= Math.min(outputCompareData.length, compiledData.length)
+          ? firstFailedLine + 12
           : Math.min(outputCompareData.length, compiledData.length);
 
       console.log("Expected:");
