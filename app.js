@@ -3,7 +3,6 @@ import { CompilationEngine } from "./src/CompilationEngine.js";
 import { writeFile } from "fs/promises";
 
 (async function () {
-  console.log(process.argv[2]);
   // Tokenizer
   const tokenizer = new Tokenizer();
   const filepath = "./ArrayTest/Main.jack";
